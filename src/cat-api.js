@@ -1,8 +1,3 @@
-import axios from 'axios';
-
-axios.defaults.headers.common['x-api-key'] =
-  'live_ihN0fIGgvLr3U0BemXl4GwufUNYVGLx9AqOcXeJRhccGpIkxJVZBWGp1q79orp6n';
-
 const url = `https://api.thecatapi.com/v1/breeds`;
 const api_key =
   'live_ihN0fIGgvLr3U0BemXl4GwufUNYVGLx9AqOcXeJRhccGpIkxJVZBWGp1q79orp6n';
@@ -17,13 +12,10 @@ fetch(url, {
     return response.json();
   })
   .then(data => {
-    console.log('API Response:', data);
     //filter to only include those with an `image` object
     data = data.filter(img => img.image?.url != null);
-    console.log('Filtered Data:', data);
 
     storedBreeds = data;
-    console.log('Stored Breeds:', storedBreeds);
 
     for (let i = 0; i < storedBreeds.length; i++) {
       const breed = storedBreeds[i];
@@ -46,6 +38,8 @@ fetch(url, {
 
 function showBreedImage(index) {
   document.getElementById('breed_image').src = storedBreeds[index].image.url;
-  document.getElementById('cat-info').textContent =
+  document.querySelector('.cat-info').textContent =
     storedBreeds[index].temperament;
 }
+
+export default getCats;
