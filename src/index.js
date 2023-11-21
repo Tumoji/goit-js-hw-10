@@ -53,7 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(error => {
       console.error('Error fetching breeds:', error);
-      loader.style.display = 'none';
+    //   loader.style.display = 'none';
+      bubleText.textContent = 'Oops! Something went wrong! Try reloading the page!';
     });
 
   function displayCatInfo(cat) {
