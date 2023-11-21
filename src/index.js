@@ -1,51 +1,79 @@
-import axios from 'axios';
+import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
+import SlimSelect from 'slim-select';
 
-axios.defaults.headers.common['x-api-key'] =
-  'live_ihN0fIGgvLr3U0BemXl4GwufUNYVGLx9AqOcXeJRhccGpIkxJVZBWGp1q79orp6n';
+document.addEventListener('DOMContentLoaded', () => {
+  const breedSelectElement = document.getElementById('breed-select');
+  const loader = document.querySelector('.loader');
+  const catInfo = document.querySelector('.cat-info');
 
-const url = `https://api.thecatapi.com/v1/breeds`;
-const api_key =
-  'live_ihN0fIGgvLr3U0BemXl4GwufUNYVGLx9AqOcXeJRhccGpIkxJVZBWGp1q79orp6n';
-let storedBreeds = [];
 
-fetch(url, {
-  headers: {
-    'x-api-key': api_key,
-  },
-})
-  .then(response => {
-    return response.json();
-  })
-  .then(data => {
-    console.log('API Response:', data);
-    //filter to only include those with an `image` object
-    data = data.filter(img => img.image?.url != null);
-    console.log('Filtered Data:', data);
+  fetchBreeds()
+    .then(breeds => {
+      const breedOptions = breeds.map(breed => ({
+        text: breed.name,
+        value: breed.id,
+      }));
 
-    storedBreeds = data;
-    console.log('Stored Breeds:', storedBreeds);
 
-    for (let i = 0; i < storedBreeds.length; i++) {
-      const breed = storedBreeds[i];
-      let option = document.createElement('option');
+      breedOptions.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option.value;
+        optionElement.textContent = option.text;
+        breedSelectElement.appendChild(optionElement);
+      });
 
-      //skip any breeds that don't have an image
-      if (!breed.image) continue;
+      new SlimSelect({
+        select: '#breed-select',
+        settings: {
+          alwaysOpen: false,
+          placeholderText: 'Select a breed',
+        },
+      });
 
-      //use the current array index
-      option.value = i;
-      option.innerHTML = `${breed.name}`;
-      document.getElementById('breed_selector').appendChild(option);
-    }
-    //show the first breed by default
-    showBreedImage(0);
-  })
-  .catch(function (error) {
-    console.log(error);
-  });
+      loader.style.display = 'none';
 
-function showBreedImage(index) {
-  document.getElementById('breed_image').src = storedBreeds[index].image.url;
-  document.getElementById('cat-info').textContent =
-    storedBreeds[index].temperament;
-}
+      breedSelectElement.addEventListener('change', event => {
+        const selectedBreedId = event.target.value;
+
+        if (selectedBreedId) {
+          loader.style.display = 'inline-block';
+          catInfo.style.display = 'none';
+
+          fetchCatByBreed(selectedBreedId)
+            .then(cat => {
+              displayCatInfo(cat);
+            })
+            .catch(error => {
+              console.error('Error fetching cat information:', error);
+              loader.style.display = 'none';
+            });
+        }
+      });
+    })
+    .catch(error => {
+      console.error('Error fetching breeds:', error);
+      loader.style.display = 'none';
+    });
+
+  function displayCatInfo(cat) {
+    const catImage = document.createElement('img');
+    catImage.src = cat[0].url;
+    catImage.alt = 'Cat Image';
+
+    catImage.onload = () => {
+      catInfo.innerHTML = '';
+      catInfo.appendChild(catImage);
+
+      const catDetails = document.createElement('div');
+      catDetails.innerHTML = `
+        <p><strong>${cat[0].breeds[0].name}</strong></p>
+        <p>${cat[0].breeds[0].description}</p>
+        <p><strong>Temperament:</strong> ${cat[0].breeds[0].temperament}</p>
+      `;
+      catInfo.appendChild(catDetails);
+
+      catInfo.style.display = 'block';
+      loader.style.display = 'none';
+    };
+  }
+});

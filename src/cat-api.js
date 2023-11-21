@@ -1,45 +1,28 @@
-const url = `https://api.thecatapi.com/v1/breeds`;
-const api_key =
+import axios from 'axios';
+import Notiflix from 'notiflix';
+
+const ENDPOINT = 'https://api.thecatapi.com/v1';
+const API_KEY =
   'live_ihN0fIGgvLr3U0BemXl4GwufUNYVGLx9AqOcXeJRhccGpIkxJVZBWGp1q79orp6n';
-let storedBreeds = [];
 
-fetch(url, {
-  headers: {
-    'x-api-key': api_key,
-  },
-})
-  .then(response => {
-    return response.json();
-  })
-  .then(data => {
-    //filter to only include those with an `image` object
-    data = data.filter(img => img.image?.url != null);
+axios.defaults.headers.common['x-api-key'] = API_KEY;
 
-    storedBreeds = data;
-
-    for (let i = 0; i < storedBreeds.length; i++) {
-      const breed = storedBreeds[i];
-      let option = document.createElement('option');
-
-      //skip any breeds that don't have an image
-      if (!breed.image) continue;
-
-      //use the current array index
-      option.value = i;
-      option.innerHTML = `${breed.name}`;
-      document.getElementById('breed_selector').appendChild(option);
-    }
-    //show the first breed by default
-    showBreedImage(0);
-  })
-  .catch(function (error) {
-    console.log(error);
-  });
-
-function showBreedImage(index) {
-  document.getElementById('breed_image').src = storedBreeds[index].image.url;
-  document.querySelector('.cat-info').textContent =
-    storedBreeds[index].temperament;
+export function fetchBreeds() {
+  return axios
+    .get(`${ENDPOINT}/breeds`)
+    .then(response => response.data)
+    .catch(error => {
+      Notiflix.Notify.failure('Failed to fetch breeds');
+      console.error('Failed to fetch breeds', error);
+    });
 }
 
-export default getCats;
+export function fetchCatByBreed(breedId) {
+  return axios
+    .get(`${ENDPOINT}/images/search?breed_ids=${breedId}`)
+    .then(response => response.data)
+    .catch(error => {
+      Notiflix.Notify.failure('Failed to fetch cat information');
+      console.error('Failed to fetch cat information', error);
+    });
+}
