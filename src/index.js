@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const breedSelectElement = document.getElementById('breed-select');
   const loader = document.querySelector('.loader');
   const catInfo = document.querySelector('.cat-info');
-
+  const bubleText = document.querySelector('.bubble');
 
   fetchBreeds()
     .then(breeds => {
@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
         text: breed.name,
         value: breed.id,
       }));
-
 
       breedOptions.forEach(option => {
         const optionElement = document.createElement('option');
@@ -26,7 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
         select: '#breed-select',
         settings: {
           alwaysOpen: false,
-          placeholderText: 'Select a breed',
+          placeholderText: 'Select here',
+          openPosition: 'up', // 'auto', 'up' or 'down'
         },
       });
 
@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       breedSelectElement.addEventListener('change', event => {
         const selectedBreedId = event.target.value;
+        bubleText.textContent = 'Select another cat';
 
         if (selectedBreedId) {
           loader.style.display = 'inline-block';
